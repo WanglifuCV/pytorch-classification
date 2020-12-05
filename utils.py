@@ -245,6 +245,7 @@ def parse_argments():
     parser.add_argument('-warm', type=int, default=1, help='warm up training phase')
     parser.add_argument('-lr', type=float, default=0.1, help='initial learning rate')
     parser.add_argument('--gpu_list', type=str, default='0', help='GPU list')
+    parser.add_argument('--resume', type=bool, default=False, help='resume')
     args = parser.parse_args()
     return args
 
