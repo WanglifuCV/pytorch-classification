@@ -8,7 +8,6 @@ author baiyu
 
 import os
 import sys
-import argparse
 import time
 from datetime import datetime
 
@@ -18,12 +17,13 @@ import torch.nn as nn
 import torch.optim as optim
 import torchvision
 import torchvision.transforms as transforms
-
 from torch.utils.data import DataLoader
-from torch.utils.tensorboard import SummaryWriter
-
+# from torch.utils.tensorboard import SummaryWriter
+from tensorboardX import SummaryWriter
 from conf import settings
 from utils import get_network, get_training_dataloader, get_test_dataloader, WarmUpLR
+from utils import Args as args
+from torchsummary import summary
 
 def train(epoch):
 
@@ -56,7 +56,7 @@ def train(epoch):
             loss.item(),
             optimizer.param_groups[0]['lr'],
             epoch=epoch,
-            trained_samples=batch_index * args.b + len(images),
+            trained_samples=batch_index * args.batch_size + len(images),
             total_samples=len(cifar100_training_loader.dataset)
         ))
 
@@ -112,23 +112,17 @@ def eval_training(epoch):
     return correct.float() / len(cifar100_test_loader.dataset)
 
 if __name__ == '__main__':
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-net', type=str, required=True, help='net type')
-    parser.add_argument('-gpu', action='store_true', default=False, help='use gpu or not')
-    parser.add_argument('-b', type=int, default=128, help='batch size for dataloader')
-    parser.add_argument('-warm', type=int, default=1, help='warm up training phase')
-    parser.add_argument('-lr', type=float, default=0.1, help='initial learning rate')
-    args = parser.parse_args()
-
+    os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu_list
     net = get_network(args)
+
+    summary(net, (3, 32, 32))
 
     #data preprocessing:
     cifar100_training_loader = get_training_dataloader(
         settings.CIFAR100_TRAIN_MEAN,
         settings.CIFAR100_TRAIN_STD,
         num_workers=4,
-        batch_size=args.b,
+        batch_size=args.batch_size,
         shuffle=True
     )
 
@@ -136,7 +130,7 @@ if __name__ == '__main__':
         settings.CIFAR100_TRAIN_MEAN,
         settings.CIFAR100_TRAIN_STD,
         num_workers=4,
-        batch_size=args.b,
+        batch_size=args.batch_size,
         shuffle=True
     )
 
